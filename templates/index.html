@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡紀錄管理系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>打卡紀錄管理系統</h1>
+        <div class="user-info">
+            使用者：{{ user }}
+            <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('qrcode_page') }}">
+                <button>📱 QR Code 打卡</button>
+            </a>
+            <a href="{{ url_for('search_page') }}">
+                <button style="background-color: #2196F3;">🔍 搜尋和匯出</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- 所有記錄管理區 -->
+    <div class="section-title">
+        <h2>📋 所有打卡記錄</h2>
+    </div>
+
+    <table>
+        <tr>
+            <th>序號</th><th>姓名</th><th>身分證</th>
+            <th>上班</th><th>下班</th><th>服務項目</th><th>服務內容</th>
+            <th>小時</th><th>分鐘</th><th>受服務人次</th>
+            <th>交通費</th><th>誤餐費</th><th>服務地區</th><th>備註</th>
+            <th>匯入動作</th><th>國外參與服務人次</th><th>國內參與服務人次</th><th>操作</th>
+        </tr>
+        {% for r in records %}
+        <tr>
+            <td>{{ r.serial_no }}</td>
+            <td>{{ r.name }}</td>
+            <td>{{ r.id_number }}</td>
+            <td>{{ r.service_start }}</td>
+            <td>{{ r.service_end }}</td>
+            <td>{{ r.service_item }}</td>
+            <td>{{ r.service_content }}</td>
+            <td>{{ r.service_hours }}</td>
+            <td>{{ r.service_minutes }}</td>
+            <td>{{ r.served_people_count }}</td>
+            <td>{{ r.transport_fee }}</td>
+            <td>{{ r.meal_fee }}</td>
+            <td>{{ r.service_area or '' }}</td>
+            <td>{{ r.remarks or '' }}</td>
+            <td>{{ r.import_action or '' }}</td>
+            <td>{{ r.foreign_service_count }}</td>
+            <td>{{ r.domestic_service_count }}</td>
+            <td>
+                <a href="{{ url_for('edit', serial_no=r.serial_no) }}">✏️</a> |
+                <a href="{{ url_for('delete', serial_no=r.serial_no) }}" onclick="return confirm('確定刪除？')">🗑️</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- 分頁控制 -->
+    <div class="pagination">
+        <div class="page-info">
+            第 {{ all_records_page }} 頁，共 {{ total_all_pages }} 頁 (總共 {{ total_all_records }} 筆記錄)
+        </div>
+        
+        <div class="page-buttons">
+            {% if all_records_page > 1 %}
+            <a href="{{ url_for('admin_panel', all_records_page=1) }}" class="page-btn">⟪</a>
+            <a href="{{ url_for('admin_panel', all_records_page=all_records_page-1) }}" class="page-btn">⟨</a>
+            {% endif %}
+
+            {% set window_size = 2 %}
+            {% set start_page = all_records_page - window_size %}
+            {% set end_page = all_records_page + window_size %}
+            
+            {% if start_page < 1 %}
+                {% set end_page = end_page - start_page + 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+            {% if end_page > total_all_pages %}
+                {% set start_page = start_page - (end_page - total_all_pages) %}
+                {% set end_page = total_all_pages %}
+            {% endif %}
+            {% if start_page < 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+
+            {% if start_page > 1 %}
+                {% if start_page > 2 %}
+                    <span class="dots">...</span>
+                {% endif %}
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                {% if p == all_records_page %}
+                    <span class="current-page">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin_panel', all_records_page=p) }}" class="page-btn">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if end_page < total_all_pages - 1 %}
+                <span class="dots">...</span>
+            {% endif %}
+
+            {% if all_records_page < total_all_pages %}
+            <a href="{{ url_for('admin_panel', all_records_page=all_records_page+1) }}" class="page-btn">⟩</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scroll-fix.js') }}"></script>
+</body>
+</html>

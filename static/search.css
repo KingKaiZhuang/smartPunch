@@ -1,0 +1,420 @@
+/* ==================== 
+   全域樣式
+   ==================== */
+:root {
+    --primary-color: #2196F3;
+    --success-color: #4CAF50;
+    --danger-color: #dc3545;
+    --info-color: #0077b6;
+    --light-bg: #f8f9fa;
+    --border-color: #ddd;
+    --text-dark: #333;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body { 
+    font-family: "微軟正黑體", Arial, sans-serif; 
+    background-color: var(--light-bg); 
+    margin: 0; 
+    padding: 20px;
+    color: var(--text-dark);
+}
+
+
+/* ==================== 
+   頭部
+   ==================== */
+.header { 
+    background-color: #fff; 
+    padding: 20px; 
+    border-radius: 8px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 { 
+    color: var(--text-dark); 
+    margin: 0;
+    font-size: 1.8em;
+    flex: 1;
+}
+
+.back-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.back-btn:hover {
+    background-color: #5a6268;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+
+/* ==================== 
+   搜尋區塊
+   ==================== */
+.search-section { 
+    background-color: #e7f3ff; 
+    padding: 20px; 
+    border-radius: 8px; 
+    margin-bottom: 20px;
+    border-left: 4px solid var(--info-color);
+}
+
+.search-section h2 { 
+    color: var(--info-color); 
+    margin-top: 0;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label { 
+    font-weight: 600; 
+    display: block; 
+    margin-bottom: 8px;
+    color: #444;
+    font-size: 14px;
+}
+
+input { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 6px; 
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(33,150,243,0.1);
+}
+
+
+/* ==================== 
+   按鈕群組
+   ==================== */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+button { 
+    padding: 12px 24px; 
+    border: none; 
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-btn { 
+    background-color: var(--success-color); 
+    color: white; 
+}
+
+.search-btn:hover { 
+    background-color: #45a049;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.export-btn { 
+    background-color: var(--primary-color); 
+    color: white; 
+}
+
+.export-btn:hover { 
+    background-color: #1976d2;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.export-btn.hidden {
+    display: none;
+}
+
+.reset-btn { 
+    background-color: #6c757d; 
+    color: white; 
+}
+
+.reset-btn:hover { 
+    background-color: #5a6268;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+
+/* ==================== 
+   結果區塊
+   ==================== */
+.results-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-section h2 {
+    color: var(--text-dark);
+    margin-top: 0;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+.summary { 
+    margin: 20px 0; 
+    padding: 15px; 
+    background-color: #d0ebff; 
+    border-radius: 5px; 
+    font-size: 16px; 
+    font-weight: bold; 
+    color: var(--info-color);
+    border-left: 4px solid var(--info-color);
+}
+
+
+/* ==================== 
+   表格樣式
+   ==================== */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    font-size: 14px; 
+    background-color: #fff; 
+}
+
+th, td { 
+    border: 1px solid #aaa; 
+    padding: 12px; 
+    text-align: center;
+}
+
+th { 
+    background-color: #d0ebff; 
+    color: var(--text-dark);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+
+/* ==================== 
+   錯誤訊息
+   ==================== */
+.error-message { 
+    color: var(--danger-color); 
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+}
+
+
+/* ==================== 
+   分頁
+   ==================== */
+.pagination { 
+    margin: 20px 0;
+    text-align: center;
+}
+
+.page-info {
+    margin-bottom: 10px;
+    color: #666;
+    font-weight: 500;
+}
+
+.page-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: var(--text-dark);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 13px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-btn:hover {
+    background-color: #e0e0e0;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.current-page {
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dots {
+    padding: 8px 10px;
+    color: #666;
+    font-weight: bold;
+    cursor: default;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+/* ==================== 
+   空狀態
+   ==================== */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+
+/* ==================== 
+   平板響應式 (max-width: 768px)
+   ==================== */
+@media (max-width: 768px) {
+    body { 
+        padding: 10px; 
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 1.4em;
+        flex: none;
+    }
+
+    .back-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .search-section {
+        padding: 15px;
+    }
+
+    table { 
+        font-size: 12px; 
+    }
+
+    th, td { 
+        padding: 10px 8px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    .page-buttons {
+        gap: 5px;
+    }
+
+    .page-btn,
+    .current-page {
+        min-width: 32px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+
+/* ==================== 
+   手機響應式 (max-width: 480px)
+   ==================== */
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+
+    h1 {
+        font-size: 1.2em;
+    }
+
+    table { 
+        font-size: 11px; 
+    }
+
+    th, td { 
+        padding: 8px 6px;
+    }
+
+    .summary {
+        font-size: 14px;
+        padding: 12px;
+    }
+}

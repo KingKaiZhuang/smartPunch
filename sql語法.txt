@@ -1,0 +1,102 @@
+==============================
+🔹 基本操作
+==============================
+-- 連線到 MySQL
+mysql -u root -p
+
+-- 查看所有資料庫
+SHOW DATABASES;
+
+-- 建立資料庫
+CREATE DATABASE personnel_data;   👉（這裡改成你自己的資料庫名稱）
+
+-- 使用某個資料庫
+USE personnel_data;               👉（這裡改成你自己的資料庫名稱）
+
+-- 查看所有資料表
+SHOW TABLES;
+
+-- 查看資料表結構
+DESCRIBE service_records;         👉（這裡改成你的資料表名稱）
+
+==============================
+🔹 資料表操作
+==============================
+-- 建立資料表
+CREATE TABLE service_records (    👉（這裡改成你的資料表名稱）
+    serial_no INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50),
+    id_number VARCHAR(20),
+    service_start DATETIME,
+    service_end DATETIME,
+    service_hours INT,
+    service_minutes INT
+);
+
+-- 新增欄位
+ALTER TABLE service_records ADD COLUMN department VARCHAR(50);   👉（這裡改成你的資料表名稱與欄位名稱）
+
+-- 修改欄位型態
+ALTER TABLE service_records MODIFY COLUMN service_hours INT;      👉（改成你的表格與欄位名稱）
+
+-- 刪除欄位
+ALTER TABLE service_records DROP COLUMN department;               👉（改成你的欄位名稱）
+
+==============================
+🔹 新增、查詢、修改、刪除資料
+==============================
+-- 新增資料
+INSERT INTO service_records (name, id_number, service_start)
+VALUES ('王小明', 'A123456789', NOW());   👉（改成你的資料表名稱與實際欄位）
+
+-- 查詢全部資料
+SELECT * FROM service_records;            👉（改成你的資料表名稱）
+
+-- 查詢特定條件
+SELECT * FROM service_records WHERE id_number = 'A123456789';   👉（改成你的欄位名稱與條件）
+
+-- 更新資料
+UPDATE service_records
+SET service_end = NOW(), service_hours = 8, service_minutes = 30
+WHERE id_number = 'A123456789';           👉（改成你的欄位名稱與條件）
+
+-- 刪除資料
+DELETE FROM service_records WHERE id_number = 'A123456789';     👉（改成你的欄位名稱與條件）
+
+==============================
+🔹 統計與聚合
+==============================
+-- 計算筆數
+SELECT COUNT(*) FROM service_records;     👉（改成你的資料表名稱）
+
+-- 計算總工時
+SELECT SUM(service_hours) AS total_hours, SUM(service_minutes) AS total_minutes
+FROM service_records;                     👉（改成你的資料表名稱）
+
+-- 查詢某員工本月工時
+SELECT name, SUM(service_hours) AS hours, SUM(service_minutes) AS minutes
+FROM service_records
+WHERE id_number = 'A123456789'
+  AND MONTH(service_start) = MONTH(CURDATE())
+GROUP BY name;                            👉（改成你的欄位名稱）
+
+==============================
+🔹 權限與安全
+==============================
+-- 建立使用者
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'password123';   👉（改成你的帳號與密碼）
+
+-- 賦予權限
+GRANT ALL PRIVILEGES ON personnel_data.* TO 'admin'@'localhost';   👉（改成你的資料庫名稱與使用者）
+
+-- 更新權限設定
+FLUSH PRIVILEGES;
+
+==============================
+🔹 備份與還原
+==============================
+-- 匯出資料庫
+mysqldump -u root -p personnel_data > backup.sql   👉（改成你的資料庫名稱與備份檔名）
+
+-- 匯入資料庫
+mysql -u root -p personnel_data < backup.sql       👉（改成你的資料庫名稱與檔案名稱）

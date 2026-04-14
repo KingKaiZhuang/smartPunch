@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯資料</title>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-dark: #1557b0;
+            --light-bg: #f0f2f5;
+            --border-color: #ddd;
+            --text-dark: #333;
+            --text-light: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: '微軟正黑體', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+            background-color: var(--light-bg); 
+            padding: 40px 20px; 
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        form { 
+            background: white; 
+            padding: 30px;
+            border-radius: 12px; 
+            max-width: 700px; 
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label { 
+            font-weight: 600; 
+            display: block; 
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 12px;
+            margin: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        input[type="datetime-local"] {
+            padding: 12px;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        button { 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover { 
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .cancel-btn {
+            background: #fff;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            text-decoration: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .cancel-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            form {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 20px;
+                margin-bottom: 25px;
+            }
+
+            .actions {
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+
+            button, .cancel-btn {
+                width: 100%;
+                padding: 14px;
+            }
+
+        }
+    </style>
+</head>
+<body>
+    <h2>✏️ 編輯資料 (編號 {{ record.serial_no }})</h2>
+    <form method="POST">
+        <!-- 基本資料 -->
+        <div class="form-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" name="name" value="{{ record.name or '' }}" placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group">
+            <label for="id_number">身分證號</label>
+            <input type="text" id="id_number" name="id_number" value="{{ record.id_number or '' }}" placeholder="請輸入身分證號" readonly>
+        </div>
+
+        <!-- 時間資訊 -->
+        <div class="form-group">
+            <label for="service_start">開始時間</label>
+            <input type="datetime-local" id="service_start" name="service_start" 
+                   value="{{ record.service_start.strftime('%Y-%m-%dT%H:%M') if record.service_start else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="service_end">結束時間</label>
+            <input type="datetime-local" id="service_end" name="service_end" 
+                   value="{{ record.service_end.strftime('%Y-%m-%dT%H:%M') if record.service_end else '' }}">
+        </div>
+
+        <!-- 服務資訊 -->
+        <div class="form-group">
+            <label for="service_item">服務項目</label>
+            <input type="text" id="service_item" name="service_item" value="{{ record.service_item or '' }}" placeholder="請輸入服務項目">
+        </div>
+
+        <div class="form-group">
+            <label for="service_content">服務內容</label>
+            <input type="text" id="service_content" name="service_content" value="{{ record.service_content or '' }}" placeholder="請輸入服務內容">
+        </div>
+
+        <!-- 時間統計 -->
+        <div class="form-group">
+            <label for="service_hours">服務時數</label>
+            <input type="number" id="service_hours" name="service_hours" min="0" value="{{ record.service_hours or 0 }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="service_minutes">服務分鐘</label>
+            <input type="number" id="service_minutes" name="service_minutes" min="0" max="59" value="{{ record.service_minutes or 0 }}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="served_people_count">服務人數</label>
+            <input type="number" id="served_people_count" name="served_people_count" min="0" value="{{ record.served_people_count or 0 }}">
+        </div>
+
+        <!-- 費用資訊 -->
+        <div class="form-group">
+            <label for="transport_fee">交通費</label>
+            <input type="number" id="transport_fee" name="transport_fee" min="0" value="{{ record.transport_fee or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="meal_fee">餐費</label>
+            <input type="number" id="meal_fee" name="meal_fee" min="0" value="{{ record.meal_fee or 0 }}">
+        </div>
+
+        <!-- 其他資訊 -->
+        <div class="form-group">
+            <label for="service_area">服務地區</label>
+            <input type="text" id="service_area" name="service_area" value="{{ record.service_area or '' }}" placeholder="請輸入服務地區">
+        </div>
+
+        <div class="form-group">
+            <label for="remarks">備註</label>
+            <input type="text" id="remarks" name="remarks" value="{{ record.remarks or '' }}" placeholder="請輸入備註">
+        </div>
+
+        <div class="form-group">
+            <label for="import_action">匯入行為</label>
+            <input type="text" id="import_action" name="import_action" value="{{ record.import_action or '' }}" placeholder="請輸入匯入行為">
+        </div>
+        <div class="form-group">
+            <label for="serial_number">序號</label>
+            <input type="text" id="serial_number" name="serial_number" value="{{ record.serial_nomber or '' }}" placeholder="輸入序號（英文和數字）"pattern="[a-zA-Z0-9]+"title="只能輸入英文字母和數字">
+        </div>
+        <!-- 服務次數統計 -->
+        <div class="form-group">
+            <label for="foreign_service_count">境外服務次數</label>
+            <input type="number" id="foreign_service_count" name="foreign_service_count" min="0" value="{{ record.foreign_service_count or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="domestic_service_count">國內服務次數</label>
+            <input type="number" id="domestic_service_count" name="domestic_service_count" min="0" value="{{ record.domestic_service_count or 0 }}">
+        </div>
+
+        <!-- 按鈕區 -->
+        <div class="actions">
+            <a href="{{ url_for('admin_panel') }}" class="cancel-btn">取消</a>
+            <button type="submit">💾 儲存修改</button>
+        </div>
+    </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 取得需要互動的 HTML 元素
+            const startInput = document.getElementById('service_start');
+            const endInput = document.getElementById('service_end');
+            const hoursInput = document.getElementById('service_hours');
+            const minutesInput = document.getElementById('service_minutes');
+
+            // 2. 建立計算時間的函式
+            function calculateTime() {
+                const startVal = startInput.value;
+                const endVal = endInput.value;
+
+                // 確保兩個時間都有填寫才進行計算
+                if (startVal && endVal) {
+                    const startTime = new Date(startVal);
+                    const endTime = new Date(endVal);
+
+                    // 計算相差的毫秒數
+                    let diffInMs = endTime - startTime;
+                    
+                    // 萬一使用者選錯，結束時間早於開始時間，就直接歸零防呆
+                    if (diffInMs < 0) {
+                        hoursInput.value = 0;
+                        minutesInput.value = 0;
+                        return;
+                    }
+
+                    // 將毫秒轉換為總分鐘數
+                    let totalMinutes = Math.floor(diffInMs / (1000 * 60));
+
+                    // 算出基礎的「小時」與「剩餘的分鐘」
+                    let baseH = Math.floor(totalMinutes / 60);
+                    let remM = totalMinutes % 60;
+                    
+                    let outH = baseH;
+                    let outM = 0;
+
+                    // 3. 套用我們先前設定的進位邏輯
+                    if (remM <= 15) {
+                        outH = baseH;
+                        outM = 0;
+                    } else if (remM <= 30) {
+                        outH = baseH;
+                        outM = 30;
+                    } else {
+                        // 31到59分鐘：小時數加 1，分鐘數歸零
+                        outH = baseH + 1;
+                        outM = 0;
+                    }
+
+                    // 4. 將結果填入唯讀的輸入框中
+                    hoursInput.value = outH;
+                    minutesInput.value = outM;
+                }
+            }
+
+            // 5. 監聽開始與結束時間的變動，一有改變就執行 calculateTime
+            startInput.addEventListener('change', calculateTime);
+            endInput.addEventListener('change', calculateTime);
+        });
+    </script>
+</body>
+</html>
+</body>
+</html>
