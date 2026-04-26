@@ -296,29 +296,13 @@
                     // 將毫秒轉換為總分鐘數
                     let totalMinutes = Math.floor(diffInMs / (1000 * 60));
 
-                    // 算出基礎的「小時」與「剩餘的分鐘」
-                    let baseH = Math.floor(totalMinutes / 60);
-                    let remM = totalMinutes % 60;
-                    
-                    let outH = baseH;
-                    let outM = 0;
+                    // 正常計算小時和分鐘
+                    let hours = Math.floor(totalMinutes / 60);
+                    let minutes = totalMinutes % 60;
 
-                    // 3. 套用我們先前設定的進位邏輯
-                    if (remM <= 15) {
-                        outH = baseH;
-                        outM = 0;
-                    } else if (remM <= 30) {
-                        outH = baseH;
-                        outM = 30;
-                    } else {
-                        // 31到59分鐘：小時數加 1，分鐘數歸零
-                        outH = baseH + 1;
-                        outM = 0;
-                    }
-
-                    // 4. 將結果填入唯讀的輸入框中
-                    hoursInput.value = outH;
-                    minutesInput.value = outM;
+                    // 將結果填入唯讀的輸入框中
+                    hoursInput.value = hours;
+                    minutesInput.value = minutes;
                 }
             }
 
@@ -330,4 +314,4 @@
 </body>
 </html>
 </body>
-</html>
+</html 
