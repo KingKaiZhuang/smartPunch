@@ -239,6 +239,95 @@ def register_record_routes(app):
         conn.close()
         return render_template('edit.html', record=record)
 
+    # ----------- 新增記錄 -----------
+    @app.route('/add', methods=['GET', 'POST'])
+    @login_required
+    def add_record():
+        if request.method == 'POST':
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            try:
+                fields = [
+                    'name', 'id_number', 'service_start', 'service_end',
+                    'service_item', 'service_content', 'service_hours', 'service_minutes',
+                    'served_people_count', 'transport_fee', 'meal_fee',
+                    'service_area', 'remarks', 'import_action', 'serial_number',
+                    'foreign_service_count', 'domestic_service_count'
+                ]
+
+                values = []
+
+                for f in fields:
+                    v = request.form.get(f)
+                    
+                    # 處理日期時間格式
+                    if f in ['service_start', 'service_end'] and v:
+                        try:
+                            v = datetime.strptime(v, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M:00')
+                        except ValueError:
+                            v = None
+                    
+                    # 處理數值欄位
+                    elif f in ["service_hours", "service_minutes", "served_people_count",
+                              "transport_fee", "meal_fee",
+                              "foreign_service_count", "domestic_service_count"]:
+                        try:
+                            v = int(v) if v and v.strip() else 0
+                        except ValueError:
+                            v = 0
+                    
+                    # 處理其他可為空的欄位
+                    elif v is None or v.strip() == "":
+                        v = None
+                        
+                    values.append(v)
+
+                # 插入新紀錄
+                sql = """
+                    INSERT INTO service_records
+                    (name, id_number, service_start, service_end,
+                     service_item, service_content, service_hours, service_minutes,
+                     served_people_count, transport_fee, meal_fee,
+                     service_area, remarks, import_action, serial_number,
+                     foreign_service_count, domestic_service_count)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(sql, tuple(values))
+                conn.commit()
+                flash("✅ 新紀錄已新增", "success")
+
+            except Exception as e:
+                conn.rollback()
+                flash(f"❌ 錯誤：{e}", "error")
+            finally:
+                cursor.close()
+                conn.close()
+            return redirect(url_for('admin_panel'))
+
+        # 新增頁面 (GET 請求) - 傳入預設值的 record 物件
+        default_record = {
+            'serial_no': None,
+            'name': '',
+            'id_number': '',
+            'service_start': None,
+            'service_end': None,
+            'service_item': '0020',
+            'service_content': '0028',
+            'service_hours': 0,
+            'service_minutes': 0,
+            'served_people_count': 3,
+            'transport_fee': 0,
+            'meal_fee': 0,
+            'service_area': 'D',
+            'remarks': '',
+            'import_action': 'A',
+            'serial_number': '',
+            'foreign_service_count': 0,
+            'domestic_service_count': 0
+        }
+        return render_template('edit.html', record=default_record)
+
     # ----------- 刪除資料 -----------
     @app.route('/delete/<int:serial_no>')
     def delete(serial_no):

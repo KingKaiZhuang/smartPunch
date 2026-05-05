@@ -82,6 +82,13 @@ def open_camera_try():
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         cap.set(cv2.CAP_PROP_FPS, 30)
+        
+        # 優化攝像頭對焦和曝光
+        try:
+            cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)  # 啟用自動對焦
+            cap.set(cv2.CAP_PROP_EXPOSURE, 0.3)  # 自動曝光
+        except:
+            pass  # 某些 OpenCV 版本可能不支持某些屬性
 
         if cap.isOpened():
             return cap, idx
@@ -113,64 +120,70 @@ def main():
             if not ok:
                 continue
 
-            retval, decoded_info, points, _ = detector.detectAndDecodeMulti(frame)
-            if retval and points is not None:
+            # 正確接收：data(字串), bbox(座標), straight_qrcode(影像)
+            data, bbox, straight_qrcode = detector.detectAndDecode(frame)
+            
+            # 如果 data 有內容（代表有掃到且成功解碼）
+            if data:
+                data = data.strip()
+                now = datetime.now()
 
-                for data, pts in zip(decoded_info, points):
-                    data = (data or "").strip()
-                    if not data:
-                        continue
+                # 3 秒內不重複掃同 QR
+                if data in last_seen and now - last_seen[data] < timedelta(seconds=3):
+                    continue
+                last_seen[data] = now
 
-                    now = datetime.now()
+                # 解密 QR 與解析
+                decrypted = decrypt_payload(data)
+                info = parse_qr_text(decrypted)
+                nid, name = info["nid"], info["name"]
 
-                    # 3 秒內不重複掃同 QR
-                    if data in last_seen and now - last_seen[data] < timedelta(seconds=3):
-                        continue
-                    last_seen[data] = now
+                # ✦ 必須有身分證字號
+                if nid == "未提供" or nid.strip() == "":
+                    print(f"{Colors.RED}❌ 無效 QR（缺少身分證）{Colors.RESET}")
+                    play_mp3("fail.MP3")
+                    continue
 
-                    # 解密 QR
-                    decrypted = decrypt_payload(data)
-                    info = parse_qr_text(decrypted)
-                    nid, name = info["nid"], info["name"]
-
-                    # ✦ 必須有身分證字號
-                    if nid == "未提供" or nid.strip() == "":
-                        print(f"{Colors.RED}❌ 無效 QR（缺少身分證）{Colors.RESET}")
+                # ✦ 同一人冷卻時間
+                if nid in last_clock_time:
+                    diff = (now - last_clock_time[nid]).total_seconds()
+                    if diff < COOLDOWN_SECONDS:
+                        # 前 10 秒無聲拒絕（拿起來需要時間）
+                        if diff < 10:
+                            continue
+                        # 10-20 秒才播放語音提示
+                        remain = int(COOLDOWN_SECONDS - diff)
+                        print(f"{Colors.YELLOW}⏳ {name} 請等待 {remain} 秒後再次打卡{Colors.RESET}")
                         play_mp3("fail.MP3")
                         continue
 
-                    # ✦ 同一人冷卻時間
-                    if nid in last_clock_time:
-                        diff = (now - last_clock_time[nid]).total_seconds()
-                        if diff < COOLDOWN_SECONDS:
-                            remain = int(COOLDOWN_SECONDS - diff)
-                            print(f"{Colors.YELLOW}⏳ {name} 請等待 {remain} 秒後再次打卡{Colors.RESET}")
-                            play_mp3("fail.MP3")
-                            continue
+                last_clock_time[nid] = now
 
-                    last_clock_time[nid] = now
+                # ========== 打卡邏輯 ==========
 
-                    # ========== 打卡邏輯 ==========
+                if nid not in clock_records or "end" in clock_records[nid]:
+                    clock_records[nid] = {"name": name, "start": now}
+                    insert_check_in(name, nid, now)
+                    print(f"{Colors.GREEN}🌅 {name} 上班打卡成功{Colors.RESET}")
+                    play_mp3("work.MP3")
 
-                    if nid not in clock_records or "end" in clock_records[nid]:
-                        clock_records[nid] = {"name": name, "start": now}
-                        insert_check_in(name, nid, now)
-                        print(f"{Colors.GREEN}🌅 {name} 上班打卡成功{Colors.RESET}")
-                        play_mp3("work.MP3")
+                else:
+                    start = clock_records[nid]["start"]
+                    delta = now - start
+                    
+                    # 正常計算小時和分鐘
+                    total_minutes = int(delta.total_seconds() // 60)
+                    out_h = total_minutes // 60
+                    out_m = total_minutes % 60
 
-                    else:
-                        start = clock_records[nid]["start"]
-                        delta = now - start
-                        hours, remainder = divmod(delta.total_seconds(), 3600)
-                        minutes = int(remainder // 60)
+                    # 將計算結果寫入資料庫
+                    update_check_out(nid, now, out_h, out_m)
+                    clock_records[nid]["end"] = now
 
-                        update_check_out(nid, now, int(hours), minutes)
-                        clock_records[nid]["end"] = now
+                    print(f"{Colors.YELLOW}🌙 {name} 下班打卡成功 | 工時 {out_h} 小時 {out_m} 分{Colors.RESET}")
+                    play_mp3("getoffwork.MP3")
 
-                        print(f"{Colors.YELLOW}🌙 {name} 下班打卡成功 | 工時 {int(hours)} 小時 {minutes} 分{Colors.RESET}")
-                        play_mp3("getoffwork.MP3")
-
-                    # =================================
+                # =================================
 
     except KeyboardInterrupt:
         print("\n使用者手動中止")

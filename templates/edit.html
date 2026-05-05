@@ -165,7 +165,11 @@
     </style>
 </head>
 <body>
+    {% if record and record.serial_no %}
     <h2>✏️ 編輯資料 (編號 {{ record.serial_no }})</h2>
+    {% else %}
+    <h2>➕ 新增紀錄</h2>
+    {% endif %}
     <form method="POST">
         <!-- 基本資料 -->
         <div class="form-group">
@@ -175,7 +179,13 @@
 
         <div class="form-group">
             <label for="id_number">身分證號</label>
-            <input type="text" id="id_number" name="id_number" value="{{ record.id_number or '' }}" placeholder="請輸入身分證號" readonly>
+            <input type="text" id="id_number" name="id_number" value="{{ record.id_number or '' }}" 
+                   placeholder="格式：A123456789"
+                   pattern="^[A-Z]{1}[0-9]{9}$"
+                   maxlength="10"
+                   inputmode="latin"
+                   title="請輸入有效的身分證字號（1 個大寫英文 + 9 位數字）"
+                   {% if record and record.serial_no %}readonly{% endif %}>
         </div>
 
         <!-- 時間資訊 -->
@@ -205,12 +215,14 @@
         <!-- 時間統計 -->
         <div class="form-group">
             <label for="service_hours">服務時數</label>
-            <input type="number" id="service_hours" name="service_hours" min="0" value="{{ record.service_hours or 0 }}" readonly>
+            <input type="number" id="service_hours" name="service_hours" min="0" value="{{ record.service_hours or 0 }}" 
+                   {% if record and record.serial_no %}readonly{% endif %}>
         </div>
 
         <div class="form-group">
             <label for="service_minutes">服務分鐘</label>
-            <input type="number" id="service_minutes" name="service_minutes" min="0" max="59" value="{{ record.service_minutes or 0 }}" readonly>
+            <input type="number" id="service_minutes" name="service_minutes" min="0" max="59" value="{{ record.service_minutes or 0 }}" 
+                   {% if record and record.serial_no %}readonly{% endif %}>
         </div>
 
         <div class="form-group">
@@ -309,6 +321,16 @@
             // 5. 監聽開始與結束時間的變動，一有改變就執行 calculateTime
             startInput.addEventListener('change', calculateTime);
             endInput.addEventListener('change', calculateTime);
+        });
+
+        // 身分證輸入驗證：只能輸入英數，自動大寫
+        document.addEventListener('DOMContentLoaded', function() {
+            const idInput = document.querySelector('input[name="id_number"]');
+            if (idInput && !idInput.hasAttribute('readonly')) {
+                idInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                });
+            }
         });
     </script>
 </body>
