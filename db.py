@@ -1,6 +1,5 @@
 import mysql.connector
 import random
-import random
 # ---------- 資料庫設定 ----------
 DB_CONFIG = {
     "host": "localhost",
