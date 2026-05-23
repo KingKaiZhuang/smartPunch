@@ -4,13 +4,14 @@ Flask 應用程式配置和初始化
 from flask import Flask
 from flask_login import LoginManager
 from user import User
+from env_config import get_required_env
 
 
 def create_app():
     """建立並配置 Flask 應用程式"""
     
     app = Flask(__name__)
-    app.secret_key = "super_secret_key_123"
+    app.secret_key = get_required_env("FLASK_SECRET_KEY")
 
     # 初始化 Flask-Login
     login_manager = LoginManager()

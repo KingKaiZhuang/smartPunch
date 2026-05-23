@@ -11,9 +11,10 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet
+from env_config import get_required_env
 
 # ---------- 加密設定 ----------
-SECRET_PASSPHRASE = "MyVeryStrongSecretPassword"  # 請與 qr_scanner.py 保持一致
+SECRET_PASSPHRASE = get_required_env("QR_SECRET_PASSPHRASE")  # 請與 qr_scanner.py 保持一致
 
 def make_key(passphrase):
     """由固定密語產生固定金鑰"""

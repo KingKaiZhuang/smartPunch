@@ -9,6 +9,7 @@ from cryptography.fernet import Fernet
 import base64
 import time
 from db import insert_check_in, update_check_out
+from env_config import get_required_env
 
 # ---------- 顏色設定 ----------
 if os.name == 'nt':
@@ -30,7 +31,7 @@ def play_mp3(filename):
         print(f"{Colors.RED}⚠️ 無法播放 MP3 ({filename}): {e}{Colors.RESET}")
 
 # ---------- 加密/解密 ----------
-SECRET_PASSPHRASE = "MyVeryStrongSecretPassword"
+SECRET_PASSPHRASE = get_required_env("QR_SECRET_PASSPHRASE")
 
 def make_key(passphrase):
     kdf = PBKDF2HMAC(

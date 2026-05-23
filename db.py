@@ -1,16 +1,38 @@
-import mysql.connector
+import sqlitecloud
 import random
-# ---------- 資料庫設定 ----------
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "0000",
-    "database": "personnel_data"
-}
+from env_config import get_required_env
 
 # ---------- 建立連線 ----------
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+class SqliteCloudConnectionWrapper:
+    def __init__(self, conn):
+        self._conn = conn
+        
+    def cursor(self, dictionary=False):
+        if dictionary:
+            self._conn.row_factory = dict_factory
+        else:
+            self._conn.row_factory = None
+        return self._conn.cursor()
+        
+    def commit(self):
+        self._conn.commit()
+        
+    def rollback(self):
+        self._conn.rollback()
+        
+    def close(self):
+        self._conn.close()
+
 def get_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    # 連接到 personnel_data
+    conn = sqlitecloud.connect(get_required_env("SQLITECLOUD_URL"))
+    return SqliteCloudConnectionWrapper(conn)
 
 # ---------- 上班打卡 ----------
 def insert_check_in(name, nid, check_in):
@@ -19,7 +41,7 @@ def insert_check_in(name, nid, check_in):
     sql = """
         INSERT INTO service_records 
         (name, id_number, service_start, service_item, service_content, service_area, import_action)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     # 預設值
     service_item = "0020"
@@ -42,9 +64,9 @@ def update_check_out(nid, check_out, hours, minutes):
     check_sql = """
         SELECT COUNT(*)
         FROM service_records
-        WHERE id_number = %s
-          AND YEAR(service_start) = YEAR(%s)
-          AND MONTH(service_start) = MONTH(%s)
+        WHERE id_number = ?
+          AND strftime('%Y', service_start) = strftime('%Y', ?)
+          AND strftime('%m', service_start) = strftime('%m', ?)
           AND served_people_count IS NOT NULL
           AND served_people_count > 0
     """
@@ -54,16 +76,20 @@ def update_check_out(nid, check_out, hours, minutes):
     # 2) 若本月已寫過，就寫 0；否則本月第一次寫 15~30
     served_people_count = 0 if already_has_month_value else random.randint(15, 30)
 
-    # 3) 更新「最新一筆未下班」紀錄（你原本 ORDER BY serial_no）
+    # 3) 更新「最新一筆未下班」紀錄
     update_sql = """
         UPDATE service_records
-        SET service_end = %s,
-            service_hours = %s,
-            service_minutes = %s,
-            served_people_count = %s
-        WHERE id_number = %s AND service_end IS NULL
-        ORDER BY serial_no DESC
-        LIMIT 1
+        SET service_end = ?,
+            service_hours = ?,
+            service_minutes = ?,
+            served_people_count = ?
+        WHERE serial_no = (
+            SELECT serial_no 
+            FROM service_records 
+            WHERE id_number = ? AND service_end IS NULL 
+            ORDER BY serial_no DESC 
+            LIMIT 1
+        )
     """
     cursor.execute(update_sql, (check_out, hours, minutes, served_people_count, nid))
     conn.commit()
