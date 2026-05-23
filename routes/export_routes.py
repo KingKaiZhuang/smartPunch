@@ -17,8 +17,9 @@ from datetime import datetime, date
 # ========= 模板設定 =========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ✅ 請把你轉好的模板放在：<本檔案同層>/templates/底下
-TEMPLATE_PATH = "/home/user/myproject~/志工時數匯入.xlsx"
+# ✅ 讀取專案根目錄下 templates 資料夾中的模板
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "志工時數匯入.xlsx")
 
 # ✅ 若你的工作表名稱不同，改這裡
 SHEET_DETAILED_NAME = "服務時數記錄"
@@ -108,8 +109,10 @@ def _clear_values_keep_style(ws, start_row: int = 2):
                 cell.value = None
 
 
-def _build_filename(nid: str, date_start, date_end, tag: str, ext: str = "xlsx") -> str:
+def _build_filename(name: str, nid: str, date_start, date_end, tag: str, ext: str = "xlsx") -> str:
     filename_parts = []
+    if name:
+        filename_parts.append(name)
     if nid:
         filename_parts.append(nid)
 
@@ -131,6 +134,7 @@ def register_export_routes(app):
     @app.route('/export_xlsx', methods=['GET', 'POST'])
     @login_required
     def export_xlsx():
+        name = request.values.get('name', '').strip()
         nid = request.values.get('nid', '').strip()
         date_start = request.values.get('date_start')
         date_end = request.values.get('date_end')
@@ -149,18 +153,22 @@ def register_export_routes(app):
         """
         params = []
 
+        if name:
+            query += " AND name LIKE ?"
+            params.append(f"%{name}%")
+
         if nid:
-            query += " AND LOWER(id_number) = LOWER(%s)"
+            query += " AND LOWER(id_number) = LOWER(?)"
             params.append(nid)
 
         if date_start and date_end:
-            query += " AND DATE(service_start) BETWEEN %s AND %s"
+            query += " AND DATE(service_start) BETWEEN ? AND ?"
             params.extend([date_start, date_end])
         elif date_start:
-            query += " AND DATE(service_start) >= %s"
+            query += " AND DATE(service_start) >= ?"
             params.append(date_start)
         elif date_end:
-            query += " AND DATE(service_start) <= %s"
+            query += " AND DATE(service_start) <= ?"
             params.append(date_end)
 
         query += " ORDER BY service_start DESC"
@@ -171,12 +179,12 @@ def register_export_routes(app):
         conn.close()
 
         if export_format == 'summary':
-            return export_summary_format(records, nid, date_start, date_end)
+            return export_summary_format(records, name, nid, date_start, date_end)
         else:
-            return export_detailed_format(records, nid, date_start, date_end)
+            return export_detailed_format(records, name, nid, date_start, date_end)
 
 
-def export_detailed_format(records, nid, date_start, date_end):
+def export_detailed_format(records, name, nid, date_start, date_end):
     """詳細格式（逐筆記錄）- ✅ 使用模板，不自行生成 Workbook"""
 
     wb, ws = _load_template(TEMPLATE_PATH, SHEET_DETAILED_NAME)
@@ -235,21 +243,23 @@ def export_detailed_format(records, nid, date_start, date_end):
             ws.cell(row=i, column=17, value=blank_if_zero(r.get("domestic_service_count")))
 
 
-    filename = _build_filename(nid, date_start, date_end, tag="detailed", ext="xlsx")
+    filename = _build_filename(name, nid, date_start, date_end, tag="detailed", ext="xlsx")
 
     output = io.BytesIO()
     wb.save(output)
     xlsx_bytes = output.getvalue()
-    xls_bytes = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
+    out_bytes, out_ext = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
 
-
-    response = make_response(xls_bytes)
-    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", ".xls")}"'
-    response.headers["Content-Type"] = "application/vnd.ms-excel"
+    response = make_response(out_bytes)
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", "."+out_ext)}"'
+    if out_ext == 'xls':
+        response.headers["Content-Type"] = "application/vnd.ms-excel"
+    else:
+        response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return response
 
 
-def export_summary_format(records, nid, date_start, date_end):
+def export_summary_format(records, name, nid, date_start, date_end):
     """統計格式（按人員統計）- ✅ 使用模板，不自行生成 Workbook"""
 
     wb, ws = _load_template(TEMPLATE_PATH, SHEET_SUMMARY_NAME)
@@ -279,49 +289,49 @@ def export_summary_format(records, nid, date_start, date_end):
     })
 
     for r in records:
-        name = r.get('name') or ""
-        if not name:
+        name_val = r.get('name') or ""
+        if not name_val:
             continue
 
-        grouped_data[name]['id_number'] = r.get('id_number') or ""
+        grouped_data[name_val]['id_number'] = r.get('id_number') or ""
 
         if r.get('service_start'):
             try:
                 service_date = r['service_start'].strftime('%Y-%m-%d')
             except Exception:
                 service_date = str(r.get('service_start'))
-            grouped_data[name]['service_dates'].append(service_date)
+            grouped_data[name_val]['service_dates'].append(service_date)
 
         if r.get('service_item'):
-            grouped_data[name]['service_items'].add(str(r['service_item']))
+            grouped_data[name_val]['service_items'].add(str(r['service_item']))
         if r.get('service_content'):
-            grouped_data[name]['service_contents'].add(str(r['service_content']))
+            grouped_data[name_val]['service_contents'].add(str(r['service_content']))
 
-        grouped_data[name]['total_hours'] += (r.get('service_hours') or 0)
-        grouped_data[name]['total_minutes'] += (r.get('service_minutes') or 0)
-        grouped_data[name]['total_people'] += (r.get('served_people_count') or 0)
-        grouped_data[name]['total_transport'] += (r.get('transport_fee') or 0)
-        grouped_data[name]['total_meal'] += (r.get('meal_fee') or 0)
+        grouped_data[name_val]['total_hours'] += (r.get('service_hours') or 0)
+        grouped_data[name_val]['total_minutes'] += (r.get('service_minutes') or 0)
+        grouped_data[name_val]['total_people'] += (r.get('served_people_count') or 0)
+        grouped_data[name_val]['total_transport'] += (r.get('transport_fee') or 0)
+        grouped_data[name_val]['total_meal'] += (r.get('meal_fee') or 0)
 
         if r.get('service_area'):
-            grouped_data[name]['service_areas'].add(str(r['service_area']))
+            grouped_data[name_val]['service_areas'].add(str(r['service_area']))
 
         if r.get('remarks'):
-            grouped_data[name]['remarks'].append(str(r['remarks']))
+            grouped_data[name_val]['remarks'].append(str(r['remarks']))
 
         if r.get('import_action'):
-            grouped_data[name]['import_actions'].add(str(r['import_action']))
+            grouped_data[name_val]['import_actions'].add(str(r['import_action']))
 
         serial_num = r.get('serial_number') or ""
         if serial_num:
-            grouped_data[name]['serials'].append(str(serial_num))
+            grouped_data[name_val]['serials'].append(str(serial_num))
 
-        grouped_data[name]['foreign_count'] += (r.get('foreign_service_count') or 0)
-        grouped_data[name]['domestic_count'] += (r.get('domestic_service_count') or 0)
+        grouped_data[name_val]['foreign_count'] += (r.get('foreign_service_count') or 0)
+        grouped_data[name_val]['domestic_count'] += (r.get('domestic_service_count') or 0)
 
     # 處理分鐘進位
-    for name in grouped_data:
-        data = grouped_data[name]
+    for name_val in grouped_data:
+        data = grouped_data[name_val]
         if data['total_minutes'] >= 60:
             extra_hours = data['total_minutes'] // 60
             data['total_hours'] += extra_hours
@@ -335,8 +345,8 @@ def export_summary_format(records, nid, date_start, date_end):
         ws.cell(row=start_row, column=1, value="無資料")
     else:
         row_i = start_row
-        for name in sorted(grouped_data.keys()):
-            data = grouped_data[name]
+        for name_val in sorted(grouped_data.keys()):
+            data = grouped_data[name_val]
 
             dates = sorted(data['service_dates'])
             date_start_str = to_roc_yyyMMdd(dates[0]) if dates else ""
@@ -344,7 +354,7 @@ def export_summary_format(records, nid, date_start, date_end):
 
             h_out, m_out = minutes_to_0_or_30(data['total_hours'], data['total_minutes'])
             row = [
-                name,
+                name_val,
                 data['id_number'],
                 date_start_str,
                 date_end_str,
@@ -369,48 +379,58 @@ def export_summary_format(records, nid, date_start, date_end):
 
             row_i += 1
 
-    filename = _build_filename(nid, date_start, date_end, tag="summary", ext="xlsx")
+    filename = _build_filename(name, nid, date_start, date_end, tag="summary", ext="xlsx")
 
     output = io.BytesIO()
     wb.save(output)
     xlsx_bytes = output.getvalue()
-    xls_bytes = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
+    out_bytes, out_ext = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
     
-    response = make_response(xls_bytes)
-    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", ".xls")}"'
-    response.headers["Content-Type"] = "application/vnd.ms-excel"
+    response = make_response(out_bytes)
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", "."+out_ext)}"'
+    if out_ext == 'xls':
+        response.headers["Content-Type"] = "application/vnd.ms-excel"
+    else:
+        response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return response
 
-def convert_xlsx_bytes_to_xls_bytes(xlsx_bytes: bytes) -> bytes:
+def convert_xlsx_bytes_to_xls_bytes(xlsx_bytes: bytes) -> tuple:
     """
-    使用 LibreOffice headless 將 XLSX bytes 轉成 XLS bytes（Excel 97-2003）
+    嘗試使用 LibreOffice headless 將 XLSX bytes 轉成 XLS bytes（Excel 97-2003）。
+    若系統沒有安裝 libreoffice 或轉檔失敗，回傳原本的 xlsx bytes 與副檔名 'xlsx'.
+    回傳 (bytes, ext)
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        in_path = os.path.join(tmpdir, "input.xlsx")
-        out_path = os.path.join(tmpdir, "input.xls")
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            in_path = os.path.join(tmpdir, "input.xlsx")
+            out_path = os.path.join(tmpdir, "input.xls")
 
-        with open(in_path, "wb") as f:
-            f.write(xlsx_bytes)
+            with open(in_path, "wb") as f:
+                f.write(xlsx_bytes)
 
-        cmd = [
-            "libreoffice",
-            "--headless",
-            "--nologo",
-            "--nofirststartwizard",
-            "--convert-to", "xls",
-            in_path,
-            "--outdir", tmpdir
-        ]
+            cmd = [
+                "libreoffice",
+                "--headless",
+                "--nologo",
+                "--nofirststartwizard",
+                "--convert-to", "xls",
+                in_path,
+                "--outdir", tmpdir
+            ]
 
-        r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
-        if r.returncode != 0:
-            raise RuntimeError(f"LibreOffice 轉檔失敗\nSTDOUT:\n{r.stdout}\nSTDERR:\n{r.stderr}")
+            r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
+            if r.returncode != 0:
+                # 若轉檔失敗（例如系統無 libreoffice），回退到 xlsx
+                return xlsx_bytes, 'xlsx'
 
-        if not os.path.exists(out_path):
-            raise RuntimeError(f"找不到輸出檔：{out_path}\nSTDOUT:\n{r.stdout}\nSTDERR:\n{r.stderr}")
+            if not os.path.exists(out_path):
+                return xlsx_bytes, 'xlsx'
 
-        with open(out_path, "rb") as f:
-            return f.read()
+            with open(out_path, "rb") as f:
+                return f.read(), 'xls'
+    except Exception:
+        # 任何例外都回傳原始 xlsx
+        return xlsx_bytes, 'xlsx'
 
 def blank_if_zero(v):
     # None、""、0、"0" 都轉空白
