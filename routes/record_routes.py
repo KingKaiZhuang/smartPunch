@@ -57,12 +57,13 @@ def register_record_routes(app):
 
         # --- 基本參數 ---
         nid = request.args.get('nid', '').strip()
+        name = request.args.get('name', '').strip()
         date_start = request.args.get('date_start')
         date_end = request.args.get('date_end')
         page = request.args.get('page', 1, type=int)
         per_page = 30
 
-        print(f"搜尋參數：nid={nid}, date_start={date_start}, date_end={date_end}")
+        print(f"搜尋參數：nid={nid}, name={name}, date_start={date_start}, date_end={date_end}")
 
         # --- 驗證日期格式 ---
         for var_name, var_value in [('開始日期', date_start), ('結束日期', date_end)]:
@@ -86,17 +87,21 @@ def register_record_routes(app):
         params = []
 
         if nid:
-            query += " AND LOWER(id_number) = LOWER(%s)"
+            query += " AND LOWER(id_number) = LOWER(?)"
             params.append(nid)
+            
+        if name:
+            query += " AND name LIKE ?"
+            params.append(f"%{name}%")
 
         if date_start and date_end:
-            query += " AND DATE(service_start) BETWEEN %s AND %s"
+            query += " AND DATE(service_start) BETWEEN ? AND ?"
             params.extend([date_start, date_end])
         elif date_start:
-            query += " AND DATE(service_start) >= %s"
+            query += " AND DATE(service_start) >= ?"
             params.append(date_start)
         elif date_end:
-            query += " AND DATE(service_start) <= %s"
+            query += " AND DATE(service_start) <= ?"
             params.append(date_end)
 
         query += " ORDER BY service_start DESC"
@@ -126,6 +131,7 @@ def register_record_routes(app):
             'search.html',
             personal_records=current_page_records,
             nid=nid,
+            name=name,
             total_hours=total_hours,
             total_minutes=total_minutes,
             date_start=date_start,
@@ -147,7 +153,7 @@ def register_record_routes(app):
                 # 1. [新增] 在更新之前，先抓取「舊的」身分證字號
                 #    這樣我們才知道要連動修改哪些舊資料
                 # ---------------------------------------------------
-                cursor.execute("SELECT id_number FROM service_records WHERE serial_no = %s", (serial_no,))
+                cursor.execute("SELECT id_number FROM service_records WHERE serial_no = ?", (serial_no,))
                 original_data = cursor.fetchone()
                 old_id_number = original_data['id_number'] if original_data else None
 
@@ -166,6 +172,23 @@ def register_record_routes(app):
                 # 用來暫存新的姓名與身分證，給後面的批次更新使用
                 new_name = request.form.get('name')
                 new_id_number = request.form.get('id_number')
+
+                # ✦ [新增] 檢查下班時間是否早於上班時間
+                service_start_str = request.form.get('service_start')
+                service_end_str = request.form.get('service_end')
+                
+                if service_start_str and service_end_str:
+                    try:
+                        service_start = datetime.strptime(service_start_str, '%Y-%m-%dT%H:%M')
+                        service_end = datetime.strptime(service_end_str, '%Y-%m-%dT%H:%M')
+                        
+                        if service_end <= service_start:
+                            cursor.close()
+                            conn.close()
+                            flash(f"❌ 下班時間不能早於或等於上班時間！\n上班：{service_start_str} | 下班：{service_end_str}", "error")
+                            return redirect(url_for('admin_panel'))
+                    except ValueError:
+                        pass
 
                 for f in fields:
                     v = request.form.get(f)
@@ -199,12 +222,12 @@ def register_record_routes(app):
                 # ---------------------------------------------------
                 sql = """
                     UPDATE service_records
-                    SET name=%s, id_number=%s, service_start=%s, service_end=%s,
-                        service_item=%s, service_content=%s, service_hours=%s, service_minutes=%s,
-                        served_people_count=%s, transport_fee=%s, meal_fee=%s,
-                        service_area=%s, remarks=%s, import_action=%s, serial_number=%s,
-                        foreign_service_count=%s, domestic_service_count=%s
-                    WHERE serial_no=%s
+                    SET name=?, id_number=?, service_start=?, service_end=?,
+                        service_item=?, service_content=?, service_hours=?, service_minutes=?,
+                        served_people_count=?, transport_fee=?, meal_fee=?,
+                        service_area=?, remarks=?, import_action=?, serial_number=?,
+                        foreign_service_count=?, domestic_service_count=?
+                    WHERE serial_no=?
                 """
                 cursor.execute(sql, tuple(values))
 
@@ -215,8 +238,8 @@ def register_record_routes(app):
                 if old_id_number:
                     sync_sql = """
                         UPDATE service_records 
-                        SET name = %s, id_number = %s 
-                        WHERE id_number = %s
+                        SET name = ?, id_number = ? 
+                        WHERE id_number = ?
                     """
                     # 用 新的姓名、新的身分證，去更新所有 舊身分證 的資料
                     cursor.execute(sync_sql, (new_name, new_id_number, old_id_number))
@@ -233,8 +256,18 @@ def register_record_routes(app):
             return redirect(url_for('admin_panel'))
 
         # 讀取指定編號資料 (GET 請求)
-        cursor.execute("SELECT * FROM service_records WHERE serial_no = %s", (serial_no,))
+        cursor.execute("SELECT * FROM service_records WHERE serial_no = ?", (serial_no,))
         record = cursor.fetchone()
+        
+        if record:
+            # 將字串格式的日期轉換為 datetime 物件，以供 template 中的 strftime 使用
+            for field in ['service_start', 'service_end']:
+                if record.get(field) and isinstance(record[field], str):
+                    try:
+                        record[field] = datetime.strptime(record[field], '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        pass
+                        
         cursor.close()
         conn.close()
         return render_template('edit.html', record=record)
@@ -291,7 +324,7 @@ def register_record_routes(app):
                      served_people_count, transport_fee, meal_fee,
                      service_area, remarks, import_action, serial_number,
                      foreign_service_count, domestic_service_count)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """
                 cursor.execute(sql, tuple(values))
                 conn.commit()
@@ -333,7 +366,7 @@ def register_record_routes(app):
     def delete(serial_no):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM service_records WHERE serial_no = %s", (serial_no,))
+        cursor.execute("DELETE FROM service_records WHERE serial_no = ?", (serial_no,))
         conn.commit()
         cursor.close()
         conn.close()

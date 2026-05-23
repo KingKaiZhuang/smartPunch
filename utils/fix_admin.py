@@ -28,8 +28,8 @@ def check_and_fix_admin():
         password_hash = bcrypt.generate_password_hash('0000').decode('utf-8')
         try:
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
-                ('admin', password_hash, 'admin')
+                "INSERT INTO users (username, password_hash, role) VALUES ('admin', ?, 'admin')",
+                (password_hash,)
             )
             conn.commit()
             print("✅ 已建立 admin 帳號")

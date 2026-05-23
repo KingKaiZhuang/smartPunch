@@ -15,11 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initializeExportButton() {
     var exportBtn = document.getElementById('exportBtn');
+    var nameValue = document.querySelector('input[name="name"]').value;
     var nidValue = document.querySelector('input[name="nid"]').value;
     var dateStart = document.querySelector('input[name="date_start"]').value;
     var dateEnd = document.querySelector('input[name="date_end"]').value;
     
-    var hasSearch = nidValue || dateStart || dateEnd;
+    var hasSearch = nameValue || nidValue || dateStart || dateEnd;
     var hasResults = document.querySelector('table') !== null;
 
     if (hasSearch && hasResults) {
@@ -34,18 +35,19 @@ function initializeExportButton() {
 function handleExportClick(e) {
     e.preventDefault();
     
+    var nameValue = document.querySelector('input[name="name"]').value;
     var nidValue = document.querySelector('input[name="nid"]').value;
     var dateStart = document.querySelector('input[name="date_start"]').value;
     var dateEnd = document.querySelector('input[name="date_end"]').value;
 
     // 顯示格式選擇對話框
-    showFormatModal(nidValue, dateStart, dateEnd);
+    showFormatModal(nameValue, nidValue, dateStart, dateEnd);
 }
 
 /**
  * 顯示格式選擇對話框
  */
-function showFormatModal(nid, dateStart, dateEnd) {
+function showFormatModal(name, nid, dateStart, dateEnd) {
     var modalHTML = `
         <div id="formatModal" class="modal-overlay">
             <div class="modal-content">
@@ -68,7 +70,7 @@ function showFormatModal(nid, dateStart, dateEnd) {
                 </div>
                 <div class="modal-actions">
                     <button class="btn-cancel" onclick="closeFormatModal()">取消</button>
-                    <button class="btn-export" onclick="submitExport('${nid}', '${dateStart}', '${dateEnd}')">確認匯出</button>
+                    <button class="btn-export" onclick="submitExport('${name}', '${nid}', '${dateStart}', '${dateEnd}')">確認匯出</button>
                 </div>
             </div>
         </div>
@@ -102,13 +104,19 @@ function closeFormatModal() {
 /**
  * 提交匯出
  */
-function submitExport(nid, dateStart, dateEnd) {
+function submitExport(name, nid, dateStart, dateEnd) {
     var format = document.querySelector('input[name="export-format"]:checked').value;
     
     var form = document.createElement('form');
     form.method = 'POST';
     form.action = '/export_xlsx';
     form.style.display = 'none';
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'name';
+    nameInput.value = name;
+    form.appendChild(nameInput);
 
     var nidInput = document.createElement('input');
     nidInput.type = 'hidden';
@@ -320,15 +328,16 @@ function addModalStyles() {
  * 初始化自動滾動功能
  */
 function initializeAutoScroll() {
+    var nameValue = document.querySelector('input[name="name"]').value;
     var nidValue = document.querySelector('input[name="nid"]').value;
     var dateStart = document.querySelector('input[name="date_start"]').value;
     var dateEnd = document.querySelector('input[name="date_end"]').value;
     
-    var hasSearch = nidValue || dateStart || dateEnd;
+    var hasSearch = nameValue || nidValue || dateStart || dateEnd;
 
     if (hasSearch) {
         setTimeout(function() {
-            var resultSection = document.querySelector('.results-section');
+            var resultSection = document.querySelector('.card:nth-of-type(2)');
             if (resultSection) {
                 resultSection.scrollIntoView({
                     behavior: 'smooth',

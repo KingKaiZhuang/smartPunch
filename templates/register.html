@@ -4,262 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>使用者註冊</title>
-    <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-dark: #1557b0;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --light-bg: #f8f9fa;
-            --border-color: #ddd;
-            --text-dark: #333;
-            --text-light: #555;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body { 
-            font-family: '微軟正黑體', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, var(--light-bg), #e9ecef);
-            margin: 0;
-            padding: 20px;
-            color: var(--text-dark);
-        }
-
-        .register-container {
-            max-width: 600px;
-            margin: 50px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h2 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            font-size: 24px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #999;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .section-title {
-            background-color: #e7f3ff;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin: 25px 0 15px 0;
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 16px;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-light);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            margin-top: 8px;
-            flex-wrap: wrap;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .radio-option input[type="radio"] {
-            width: auto;
-            margin: 0;
-            padding: 0;
-            border: none;
-            box-shadow: none;
-        }
-
-        .radio-option label {
-            margin: 0;
-            font-weight: normal;
-            cursor: pointer;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: var(--primary-dark);
-            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .back-link a:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
-        }
-
-        .flash-messages {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 20px 0;
-        }
-
-        .flash-messages div {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 4px solid;
-        }
-
-        .flash-error {
-            color: #721c24;
-            background: #f8d7da;
-            border-color: #f5c6cb;
-        }
-
-        .flash-success {
-            color: #155724;
-            background: #d4edda;
-            border-color: #c3e6cb;
-        }
-
-        .help-text {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        .required {
-            color: var(--danger-color);
-        }
-
-        .warning-box {
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-            color: #856404;
-            border-left: 4px solid var(--warning-color);
-        }
-
-        .warning-box strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        @media (max-width: 600px) {
-            .register-container {
-                margin: 20px auto;
-                padding: 20px;
-                border-radius: 10px;
-            }
-
-            h2 {
-                font-size: 20px;
-            }
-
-            .section-title {
-                font-size: 14px;
-                padding: 10px 12px;
-            }
-
-            .radio-group {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            button {
-                padding: 14px;
-                font-size: 15px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="register-container">
-        <h2>👤 使用者註冊</h2>
-        <p class="subtitle">請填寫以下資訊以建立新帳號</p>
+    <div class="auth-container" style="max-width: 500px;">
+        <h1 style="font-size: 32px;">使用者註冊</h1>
+        <p style="margin-bottom: 30px;">請填寫以下資訊以建立新帳號</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-messages">
+        <div style="margin-bottom: 20px;">
             {% for category, msg in messages %}
-            <div class="flash-{{ category }}">
+            <div class="badge" style="display: block; text-align: left; background-color: {% if category == 'success' %}#e5f0fb{% else %}#ffebe9{% endif %}; color: {% if category == 'success' %}var(--apple-blue){% else %}var(--apple-red){% endif %}; font-size: 14px; padding: 12px; margin-bottom: 10px;">
                 {{ msg }}
             </div>
             {% endfor %}
@@ -267,76 +23,79 @@
         {% endif %}
         {% endwith %}
 
-        <div class="warning-box">
-            <strong>⚠️ 注意事項</strong>
-            註冊新使用者需要管理員授權，請確保您已取得管理員的同意。
+        <div class="badge" style="display: block; text-align: left; background-color: #fff8e5; color: #b26b00; font-size: 14px; padding: 15px; margin-bottom: 20px; border-left: 4px solid #ffb300;" id="admin-notice" style="display: none;">
+            <strong style="display: block; margin-bottom: 5px;">注意</strong>
+            註冊新管理員帳號需要現有管理員授權，請確保您已取得管理員的同意。
         </div>
 
-        <form method="POST">
-            <!-- 新使用者資訊 -->
-            <div class="section-title">📝 新使用者資訊</div>
-            
-            <div class="form-group">
-                <label for="username">帳號 <span class="required">*</span></label>
-                <input type="text" id="username" name="username" required 
-                       placeholder="請輸入帳號（4-20個字元）"
-                       minlength="4" maxlength="20"
-                       pattern="[a-zA-Z0-9_]+"
-                       title="只能包含英文、數字和底線">
-                <div class="help-text">只能使用英文、數字和底線</div>
-            </div>
+        <div class="card" style="padding: 40px; text-align: left;">
+            <form method="POST">
+                <!-- 新使用者資訊 -->
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid var(--apple-border); padding-bottom: 8px;">新使用者資訊</h3>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="username">帳號 <span style="color: var(--apple-red);">*</span></label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="請輸入帳號（4-20個字元）"
+                           minlength="4" maxlength="20"
+                           pattern="[a-zA-Z0-9_]+"
+                           title="只能包含英文、數字和底線" style="margin-bottom: 5px;">
+                    <div style="font-size: 12px; color: var(--apple-text-secondary);">只能使用英文、數字和底線</div>
+                </div>
 
-            <div class="form-group">
-                <label for="password">密碼 <span class="required">*</span></label>
-                <input type="password" id="password" name="password" required 
-                       placeholder="請輸入密碼（至少4個字元）"
-                       minlength="4">
-                <div class="help-text">密碼至少需要 4 個字元</div>
-            </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="password">密碼 <span style="color: var(--apple-red);">*</span></label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="請輸入密碼（至少4個字元）"
+                           minlength="4" style="margin-bottom: 5px;">
+                    <div style="font-size: 12px; color: var(--apple-text-secondary);">密碼至少需要 4 個字元</div>
+                </div>
 
-            <div class="form-group">
-                <label for="confirm_password">確認密碼 <span class="required">*</span></label>
-                <input type="password" id="confirm_password" name="confirm_password" required 
-                       placeholder="請再次輸入密碼"
-                       minlength="4">
-            </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="confirm_password">確認密碼 <span style="color: var(--apple-red);">*</span></label>
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           placeholder="請再次輸入密碼">
+                </div>
 
-            <div class="form-group">
-                <label>使用者權限 <span class="required">*</span></label>
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="role_user" name="role" value="user" checked>
-                        <label for="role_user">👤 普通使用者</label>
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label class="form-label">使用者權限 <span style="color: var(--apple-red);">*</span></label>
+                    <div style="display: flex; gap: 20px; margin-top: 10px;">
+                        <div>
+                            <input type="radio" id="role_user" name="role" value="user" checked style="width: auto; margin-right: 8px;">
+                            <label for="role_user" style="font-weight: 400;">普通使用者</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="role_admin" name="role" value="admin" style="width: auto; margin-right: 8px;">
+                            <label for="role_admin" style="font-weight: 400;">管理員</label>
+                        </div>
                     </div>
-                    <div class="radio-option">
-                        <input type="radio" id="role_admin" name="role" value="admin">
-                        <label for="role_admin">👑 管理員</label>
+                    <div style="font-size: 12px; color: var(--apple-text-secondary); margin-top: 8px;">管理員擁有完整系統權限，請謹慎設定</div>
+                </div>
+
+                <!-- 管理員驗證 -->
+                <div id="admin-auth-section" style="display: none;">
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid var(--apple-border); padding-bottom: 8px;">管理員授權驗證</h3>
+                    
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" for="admin_username">管理員帳號 <span style="color: var(--apple-red);">*</span></label>
+                        <input type="text" id="admin_username" name="admin_username" 
+                               placeholder="請輸入授權管理員的帳號" style="margin-bottom: 5px;">
+                        <div style="font-size: 12px; color: var(--apple-text-secondary);">需要輸入現有管理員的帳號密碼以完成註冊</div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label class="form-label" for="admin_password">管理員密碼 <span style="color: var(--apple-red);">*</span></label>
+                        <input type="password" id="admin_password" name="admin_password" 
+                               placeholder="請輸入授權管理員的密碼">
                     </div>
                 </div>
-                <div class="help-text">管理員擁有完整系統權限，請謹慎設定</div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 12px;">註冊新使用者</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <a href="{{ url_for('login') }}" style="font-size: 14px; font-weight: 500;">返回登入頁面</a>
             </div>
-
-            <!-- 管理員驗證 -->
-            <div class="section-title">🔐 管理員授權驗證</div>
-            
-            <div class="form-group">
-                <label for="admin_username">管理員帳號 <span class="required">*</span></label>
-                <input type="text" id="admin_username" name="admin_username" required 
-                       placeholder="請輸入授權管理員的帳號">
-                <div class="help-text">需要輸入現有管理員的帳號密碼以完成註冊</div>
-            </div>
-
-            <div class="form-group">
-                <label for="admin_password">管理員密碼 <span class="required">*</span></label>
-                <input type="password" id="admin_password" name="admin_password" required 
-                       placeholder="請輸入授權管理員的密碼">
-            </div>
-
-            <button type="submit">✅ 註冊新使用者</button>
-        </form>
-
-        <div class="back-link">
-            <a href="{{ url_for('login') }}">⬅️ 返回登入頁面</a>
         </div>
     </div>
 
@@ -360,6 +119,34 @@
                 confirmPassword.setCustomValidity('');
             }
         });
+
+        // 動態切換管理員授權區塊
+        const roleUser = document.getElementById('role_user');
+        const roleAdmin = document.getElementById('role_admin');
+        const adminSection = document.getElementById('admin-auth-section');
+        const adminNotice = document.getElementById('admin-notice');
+        const adminUsername = document.getElementById('admin_username');
+        const adminPassword = document.getElementById('admin_password');
+
+        function toggleAdminSection() {
+            if (roleAdmin.checked) {
+                adminSection.style.display = 'block';
+                adminNotice.style.display = 'block';
+                adminUsername.required = true;
+                adminPassword.required = true;
+            } else {
+                adminSection.style.display = 'none';
+                adminNotice.style.display = 'none';
+                adminUsername.required = false;
+                adminPassword.required = false;
+            }
+        }
+
+        roleUser.addEventListener('change', toggleAdminSection);
+        roleAdmin.addEventListener('change', toggleAdminSection);
+        
+        // 初始狀態
+        toggleAdminSection();
     </script>
 </body>
 </html>

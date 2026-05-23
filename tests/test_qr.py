@@ -7,9 +7,10 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet
 import base64
+from env_config import get_required_env
 
 # 固定密語（請確認與 app.py 完全相同）
-SECRET_PASSPHRASE = "MyVeryStrongSecretPassword"
+SECRET_PASSPHRASE = get_required_env("QR_SECRET_PASSPHRASE")
 
 # ------------------------------------------------
 # 由固定密語產生固定金鑰（與 app.py 相同邏輯）

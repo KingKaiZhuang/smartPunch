@@ -26,7 +26,7 @@ class User(UserMixin):
         """根據 ID 獲取使用者"""
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -40,7 +40,7 @@ class User(UserMixin):
         """根據使用者名稱獲取使用者"""
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         row = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -62,7 +62,7 @@ class User(UserMixin):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
+                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
                 (username, password_hash, role)
             )
             conn.commit()
@@ -85,7 +85,7 @@ class User(UserMixin):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "UPDATE users SET password_hash = %s WHERE username = %s",
+                "UPDATE users SET password_hash = ? WHERE username = ?",
                 (password_hash, username)
             )
             conn.commit()
@@ -107,7 +107,7 @@ class User(UserMixin):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "UPDATE users SET role = %s WHERE username = %s",
+                "UPDATE users SET role = ? WHERE username = ?",
                 (new_role, username)
             )
             conn.commit()
@@ -139,7 +139,7 @@ class User(UserMixin):
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("DELETE FROM users WHERE username = %s", (username,))
+            cursor.execute("DELETE FROM users WHERE username = ?", (username,))
             conn.commit()
             affected_rows = cursor.rowcount
             cursor.close()

@@ -39,9 +39,9 @@ def register_auth_routes(app):
             admin_username = request.form.get('admin_username')
             admin_password = request.form.get('admin_password')
             
-            # 驗證欄位完整性
-            if not all([new_username, new_password, confirm_password, role, admin_username, admin_password]):
-                flash('請填寫所有欄位！', 'error')
+            # 基本欄位驗證
+            if not all([new_username, new_password, confirm_password, role]):
+                flash('請填寫所有必填欄位！', 'error')
                 return render_template('register.html')
             
             # 驗證密碼一致性
@@ -54,15 +54,20 @@ def register_auth_routes(app):
                 flash('密碼至少需要 4 個字元！', 'error')
                 return render_template('register.html')
             
-            # 驗證管理員身份
-            admin_user = User.get_by_username(admin_username)
-            if not admin_user or not admin_user.check_password(admin_password):
-                flash('管理員帳號或密碼錯誤！無法註冊', 'error')
-                return render_template('register.html')
-            
-            if not admin_user.is_admin():
-                flash('只有管理員才能授權註冊新使用者！', 'error')
-                return render_template('register.html')
+            # 只有註冊管理員才需要驗證現有管理員身份
+            if role == 'admin':
+                if not admin_username or not admin_password:
+                    flash('註冊管理員帳號需要提供授權管理員帳號與密碼！', 'error')
+                    return render_template('register.html')
+                    
+                admin_user = User.get_by_username(admin_username)
+                if not admin_user or not admin_user.check_password(admin_password):
+                    flash('授權管理員帳號或密碼錯誤！無法註冊', 'error')
+                    return render_template('register.html')
+                
+                if not admin_user.is_admin():
+                    flash('只有現有管理員才能授權註冊新管理員帳號！', 'error')
+                    return render_template('register.html')
             
             # 檢查使用者名稱是否已存在
             existing_user = User.get_by_username(new_username)

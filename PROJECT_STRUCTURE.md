@@ -7,7 +7,7 @@ QR code/
 │
 ├── app.py                      # 主應用程式入口
 ├── config.py                   # Flask 應用配置
-├── db.py                       # 資料庫連線和基本操作
+├── db.py                       # SQLiteCloud 資料庫連線和基本操作
 ├── user.py                     # 使用者認證模組
 ├── qr_scanner.py              # QR code 掃描功能
 │
@@ -18,7 +18,7 @@ QR code/
 │   ├── export_routes.py       # Excel 匯出功能
 │   └── qrcode_routes.py       # QRCode 生成路由
 │
-├── templates/                  # HTML 模板
+├── templates/                  # HTML 模板 (Apple Minimalist Style)
 │   ├── index.html            # 後台主頁
 │   ├── login.html            # 登入頁面
 │   ├── register.html         # 註冊頁面
@@ -27,16 +27,17 @@ QR code/
 │   └── search.html           # 搜尋結果頁面
 │
 ├── static/                     # 靜態資源
-│   ├── style.css             # 主樣式表
+│   ├── style.css             # 主樣式表 (極簡蘋果風)
 │   ├── search.css            # 搜尋頁面樣式
 │   ├── search.js             # 搜尋功能腳本
 │   └── scroll-fix.js         # 滾動修復腳本
 │
-├── Test tool/                  # 測試工具
+├── utils/                      # 實用工具腳本
+│   ├── init_sqlitecloud.py   # SQLiteCloud 初始化腳本
 │   ├── fix_admin.py          # 修復管理員帳號工具
 │   ├── migrate_passwords.py  # 資料庫遷移工具
-│   ├── qr-test.py            # QRCode 測試
-│   └── test.py               # 一般測試
+│   ├── xls_to_xlsx.py        # 格式轉換工具
+│   └── xlsx_to_xls.py        # 格式轉換工具
 │
 └── __pycache__/               # Python 快取檔案
 ```
@@ -47,7 +48,7 @@ QR code/
 
 - **app.py** - 應用程式的主進入點 (19 行)，負責應用配置和路由註冊
 - **config.py** - Flask 應用配置，包含 Flask-Login 初始化和 bcrypt 密碼加密
-- **db.py** - MySQL 資料庫連線管理和基本操作
+- **db.py** - SQLiteCloud 資料庫連線管理和基本操作
 - **user.py** - 使用者認證和權限管理系統
 - **qr_scanner.py** - QR code 掃描功能
 - **mqtt_sender.py** - MQTT 訊息傳送模組
@@ -57,7 +58,7 @@ QR code/
 
 #### 1. **auth_routes.py** - 認證模組
    - `/login` - 登入頁面 (GET, POST)
-   - `/register` - 使用者註冊 (GET, POST) ⭐ 新增
+   - `/register` - 使用者註冊 (GET, POST)
    - `/logout` - 登出功能 (GET)
 
 #### 2. **record_routes.py** - 服務記錄管理
@@ -77,7 +78,7 @@ QR code/
 ```
 Flask
 Flask-Login
-mysql-connector-python
+sqlitecloud
 openpyxl
 qrcode
 Pillow
@@ -88,6 +89,8 @@ paho-mqtt
 ## 🔑 主要特性
 
 ✅ **模組化設計** - 程式碼按功能清晰分類
+✅ **雲端資料庫** - 採用 SQLiteCloud，輕量且支援雲端同步
+✅ **極簡美學 UI** - 全面套用 Apple Minimalist Style (蘋果極簡風)，視覺留白、藍色藥丸按鈕與現代黑體
 ✅ **雙重認證系統** - 登入驗證 + 註冊授權
 ✅ **密碼加密** - 使用 bcrypt 安全加密
 ✅ **權限管理** - 管理員 vs 普通使用者分級
@@ -116,5 +119,5 @@ python app.py
 
 ---
 
-**開發日期**: 2025年11月22日
-**版本**: 2.0 (含使用者認證與註冊系統)
+**開發日期**: 2026年5月21日
+**版本**: 3.0 (雲端資料庫 SQLiteCloud 升級 & 蘋果極簡風 UI 改版)
