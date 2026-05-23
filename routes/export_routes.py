@@ -250,8 +250,13 @@ def export_detailed_format(records, name, nid, date_start, date_end):
     xlsx_bytes = output.getvalue()
     out_bytes, out_ext = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
 
+    # 建立安全的 Content-Disposition：提供 ASCII filename 與 UTF-8 percent-encoded filename*
+    from urllib.parse import quote
+    out_name = filename.replace('.xlsx', '.' + out_ext)
+    ascii_name = out_name.encode('ascii', 'ignore').decode('ascii') or 'download.' + out_ext
+    disposition = f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{quote(out_name)}'
     response = make_response(out_bytes)
-    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", "."+out_ext)}"'
+    response.headers["Content-Disposition"] = disposition
     if out_ext == 'xls':
         response.headers["Content-Type"] = "application/vnd.ms-excel"
     else:
@@ -386,8 +391,12 @@ def export_summary_format(records, name, nid, date_start, date_end):
     xlsx_bytes = output.getvalue()
     out_bytes, out_ext = convert_xlsx_bytes_to_xls_bytes(xlsx_bytes)
     
+    from urllib.parse import quote
+    out_name = filename.replace('.xlsx', '.' + out_ext)
+    ascii_name = out_name.encode('ascii', 'ignore').decode('ascii') or 'download.' + out_ext
+    disposition = f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{quote(out_name)}'
     response = make_response(out_bytes)
-    response.headers["Content-Disposition"] = f'attachment; filename="{filename.replace(".xlsx", "."+out_ext)}"'
+    response.headers["Content-Disposition"] = disposition
     if out_ext == 'xls':
         response.headers["Content-Type"] = "application/vnd.ms-excel"
     else:
